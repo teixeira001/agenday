@@ -52,6 +52,10 @@ public class Agendamento {
     @Column(length = 500)
     private String observacao;
 
+    // Duração customizada em minutos (utilizada para bloqueios administrativos quando não há serviço vinculado)
+    @Column(name = "duracao_bloqueio_minutos")
+    private Integer duracaoBloqueioMinutos;
+
     public Agendamento() {
     }
 
@@ -63,12 +67,37 @@ public class Agendamento {
         this.status = status;
     }
 
-    // Método utilitário para calcular horário de término baseado na duração do serviço
+    // Construtor específico para Bloqueios Administrativos
+    public static Agendamento criarBloqueio(LocalDate data, LocalTime horario, int duracaoMinutos, String motivo) {
+        Agendamento bloqueio = new Agendamento();
+        bloqueio.setData(data);
+        bloqueio.setHorario(horario);
+        bloqueio.setDuracaoBloqueioMinutos(duracaoMinutos);
+        bloqueio.setStatus(StatusAgendamento.BLOQUEADO);
+        bloqueio.setObservacao(motivo != null && !motivo.isBlank() ? motivo : "Bloqueio de Horário");
+        return bloqueio;
+    }
+
+    // Método utilitário para calcular horário de término baseado na duração do serviço ou do bloqueio
     public LocalTime getHorarioTermino() {
-        if (horario != null && servico != null && servico.getDuracaoMinutos() != null) {
+        if (horario == null) {
+            return null;
+        }
+        if (servico != null && servico.getDuracaoMinutos() != null) {
             return horario.plusMinutes(servico.getDuracaoMinutos());
         }
+        if (duracaoBloqueioMinutos != null) {
+            return horario.plusMinutes(duracaoBloqueioMinutos);
+        }
         return horario;
+    }
+
+    public Integer getDuracaoBloqueioMinutos() {
+        return duracaoBloqueioMinutos;
+    }
+
+    public void setDuracaoBloqueioMinutos(Integer duracaoBloqueioMinutos) {
+        this.duracaoBloqueioMinutos = duracaoBloqueioMinutos;
     }
 
     public Long getId() {

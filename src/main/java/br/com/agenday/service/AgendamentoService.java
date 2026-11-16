@@ -124,6 +124,46 @@ public class AgendamentoService {
     }
 
     /**
+     * Marca um agendamento como CONCLUIDO.
+     */
+    @Transactional
+    public void concluirAgendamento(Long agendamentoId) {
+        Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
+                .orElseThrow(() -> new IllegalArgumentException("Agendamento não encontrado: " + agendamentoId));
+
+        agendamento.setStatus(StatusAgendamento.CONCLUIDO);
+        agendamentoRepository.save(agendamento);
+    }
+
+    /**
+     * Registra um bloqueio administrativo de horário na agenda (UC04).
+     */
+    @Transactional
+    public Agendamento bloquearHorario(LocalDate data, LocalTime horarioInicio, int duracaoMinutos, String motivo) {
+        if (duracaoMinutos <= 0) {
+            throw new IllegalArgumentException("A duração do bloqueio deve ser superior a zero.");
+        }
+
+        Agendamento bloqueio = Agendamento.criarBloqueio(data, horarioInicio, duracaoMinutos, motivo);
+        return agendamentoRepository.save(bloqueio);
+    }
+
+    /**
+     * Remove um bloqueio administrativo existente.
+     */
+    @Transactional
+    public void removerBloqueio(Long agendamentoId) {
+        Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
+                .orElseThrow(() -> new IllegalArgumentException("Agendamento não encontrado: " + agendamentoId));
+
+        if (agendamento.getStatus() != StatusAgendamento.BLOQUEADO) {
+            throw new IllegalStateException("Apenas registros com status BLOQUEADO podem ser removidos.");
+        }
+
+        agendamentoRepository.delete(agendamento);
+    }
+
+    /**
      * Cancela um agendamento (RN03).
      */
     @Transactional

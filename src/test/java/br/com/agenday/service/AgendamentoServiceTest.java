@@ -125,4 +125,35 @@ class AgendamentoServiceTest {
         assertEquals("Carlos Novo Nome", agendamentoCriado.getCliente().getNome());
         verify(clienteRepository).save(clienteExistente);
     }
+
+    @Test
+    @DisplayName("Deve concluir agendamento com sucesso")
+    void testConcluirAgendamento() {
+        Agendamento ag = new Agendamento(new Cliente("Ana", "11999993333"), massagem60min, LocalDate.now(), LocalTime.of(10, 0), StatusAgendamento.AGENDADO);
+        ag.setId(10L);
+
+        when(agendamentoRepository.findById(10L)).thenReturn(Optional.of(ag));
+
+        agendamentoService.concluirAgendamento(10L);
+
+        assertEquals(StatusAgendamento.CONCLUIDO, ag.getStatus());
+        verify(agendamentoRepository).save(ag);
+    }
+
+    @Test
+    @DisplayName("Deve salvar bloqueio administrativo corretamente")
+    void testBloquearHorario() {
+        LocalDate data = LocalDate.now().plusDays(2);
+        LocalTime horario = LocalTime.of(14, 0);
+
+        when(agendamentoRepository.save(any(Agendamento.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Agendamento bloqueio = agendamentoService.bloquearHorario(data, horario, 120, "Médico");
+
+        assertNotNull(bloqueio);
+        assertEquals(StatusAgendamento.BLOQUEADO, bloqueio.getStatus());
+        assertEquals(Integer.valueOf(120), bloqueio.getDuracaoBloqueioMinutos());
+        assertEquals("Médico", bloqueio.getObservacao());
+        assertEquals(LocalTime.of(16, 0), bloqueio.getHorarioTermino());
+    }
 }
