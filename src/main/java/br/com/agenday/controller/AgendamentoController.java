@@ -101,7 +101,7 @@ public class AgendamentoController {
      */
     @GetMapping("/agendamento/sucesso/{id}")
     public String exibirSucesso(@PathVariable("id") Long id, Model model) {
-        Agendamento agendamento = agendamentoRepository.findById(id)
+        Agendamento agendamento = agendamentoRepository.findByIdComDetalhes(id)
                 .orElseThrow(() -> new IllegalArgumentException("Agendamento não encontrado: " + id));
 
         model.addAttribute("agendamento", agendamento);

@@ -98,7 +98,7 @@ class AgendamentoControllerTest {
         Agendamento agendamento = new Agendamento(cliente, servico, amanha, LocalTime.of(9, 0), StatusAgendamento.AGENDADO);
         agendamento.setId(10L);
 
-        when(agendamentoRepository.findById(10L)).thenReturn(Optional.of(agendamento));
+        when(agendamentoRepository.findByIdComDetalhes(10L)).thenReturn(Optional.of(agendamento));
 
         mockMvc.perform(get("/agendamento/sucesso/10"))
                 .andExpect(status().isOk())
