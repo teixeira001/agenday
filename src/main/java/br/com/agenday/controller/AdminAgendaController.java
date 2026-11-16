@@ -41,7 +41,7 @@ public class AdminAgendaController {
 
         LocalDate dataConsulta = (data != null) ? data : LocalDate.now();
 
-        List<Agendamento> agendamentos = agendamentoRepository.findByDataOrderByHorarioAsc(dataConsulta);
+        List<Agendamento> agendamentos = agendamentoRepository.findByDataComDetalhesOrderByHorarioAsc(dataConsulta);
 
         // Estatísticas do dia
         long totalAgendadosOuConcluidos = agendamentos.stream()

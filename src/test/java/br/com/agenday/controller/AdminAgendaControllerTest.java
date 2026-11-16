@@ -45,7 +45,7 @@ class AdminAgendaControllerTest {
         Servico servico = new Servico("Drenagem", "Desc", 60, new BigDecimal("130.00"));
         Agendamento ag = new Agendamento(cliente, servico, hoje, LocalTime.of(10, 0), StatusAgendamento.AGENDADO);
 
-        when(agendamentoRepository.findByDataOrderByHorarioAsc(hoje)).thenReturn(List.of(ag));
+        when(agendamentoRepository.findByDataComDetalhesOrderByHorarioAsc(hoje)).thenReturn(List.of(ag));
 
         mockMvc.perform(get("/admin").param("data", hoje.toString()))
                 .andExpect(status().isOk())
