@@ -28,6 +28,11 @@
                 <a th:href="@{/}" target="_blank" class="btn btn-outline-light btn-sm rounded-pill">
                     <i class="bi bi-box-arrow-up-right me-1"></i> Ver Site do Cliente
                 </a>
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill">
+                        <i class="bi bi-box-arrow-right me-1"></i> Sair
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
@@ -284,6 +289,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
                 <form id="formCancelar" method="POST">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" name="data" th:value="${dataSelecionada}">
                     <div class="modal-header border-0 pb-0">
                         <h5 class="modal-title fw-bold text-danger">
