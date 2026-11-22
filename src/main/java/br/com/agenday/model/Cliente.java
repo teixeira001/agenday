@@ -28,6 +28,10 @@ public class Cliente {
     @Column(nullable = false, unique = true, length = 20)
     private String telefone;
 
+    @Size(max = 2000, message = "A ficha/observação não pode exceder 2000 caracteres.")
+    @Column(columnDefinition = "TEXT")
+    private String observacoes;
+
     public Cliente() {
     }
 
@@ -58,6 +62,14 @@ public class Cliente {
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
+    }
+
+    public String getObservacoes() {
+        return observacoes;
+    }
+
+    public void setObservacoes(String observacoes) {
+        this.observacoes = observacoes;
     }
 
     @Override

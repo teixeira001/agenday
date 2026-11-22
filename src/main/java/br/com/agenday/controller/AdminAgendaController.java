@@ -66,6 +66,7 @@ public class AdminAgendaController {
         model.addAttribute("totalAtendimentos", totalAgendadosOuConcluidos);
         model.addAttribute("totalConcluidos", totalConcluidos);
         model.addAttribute("faturamentoEstimado", faturamentoEstimado);
+        model.addAttribute("paginaAtiva", "agenda");
 
         return "admin/agenda";
     }

@@ -24,15 +24,37 @@
             <a class="navbar-brand fw-bold" th:href="@{/admin}">
                 <i class="bi bi-shield-check text-primary me-2"></i>Agenday <span class="badge bg-primary fs-6">Admin</span>
             </a>
-            <div class="d-flex align-items-center gap-2">
-                <a th:href="@{/}" target="_blank" class="btn btn-outline-light btn-sm rounded-pill">
-                    <i class="bi bi-box-arrow-up-right me-1"></i> Ver Site do Cliente
-                </a>
-                <form th:action="@{/logout}" method="post" class="m-0">
-                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill">
-                        <i class="bi bi-box-arrow-right me-1"></i> Sair
-                    </button>
-                </form>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar" aria-controls="adminNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="adminNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${paginaAtiva == 'agenda' ? 'active fw-bold' : ''}" th:href="@{/admin}">
+                            <i class="bi bi-calendar3 me-1"></i> Agenda
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${paginaAtiva == 'clientes' ? 'active fw-bold' : ''}" th:href="@{/admin/clientes}">
+                            <i class="bi bi-people me-1"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${paginaAtiva == 'servicos' ? 'active fw-bold' : ''}" th:href="@{/admin/servicos}">
+                            <i class="bi bi-scissors me-1"></i> Serviços
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <a th:href="@{/}" target="_blank" class="btn btn-outline-light btn-sm rounded-pill">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Ver Site do Cliente
+                    </a>
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="btn btn-outline-light btn-sm rounded-pill">
+                            <i class="bi bi-box-arrow-right me-1"></i> Sair
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </nav>
@@ -158,7 +180,12 @@
                                     <!-- Caso seja Atendimento Normal -->
                                     <div th:if="${ag.status.name() != 'BLOQUEADO'}">
                                         <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                            <h6 class="fw-bold mb-0 text-dark" th:text="${ag.cliente != null ? ag.cliente.nome : 'Cliente Não Identificado'}">Nome Cliente</h6>
+                                            <a th:if="${ag.cliente != null}"
+                                               th:href="@{/admin/clientes/{id}(id=${ag.cliente.id})}"
+                                               class="h6 fw-bold mb-0 text-dark text-decoration-none"
+                                               title="Ver perfil e ficha do cliente"
+                                               th:text="${ag.cliente.nome}">Nome Cliente</a>
+                                            <h6 th:unless="${ag.cliente != null}" class="fw-bold mb-0 text-dark">Cliente Não Identificado</h6>
                                             <!-- Badge de Status -->
                                             <span class="badge rounded-pill"
                                                   th:classappend="${ag.status.name() == 'AGENDADO' ? 'bg-primary' : (ag.status.name() == 'CONCLUIDO' ? 'bg-success' : 'bg-secondary')}"
@@ -190,13 +217,27 @@
 
                             <!-- Bloco de Ações e Contato -->
                             <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <!-- Botão de WhatsApp se tiver telefone -->
+                                <!-- Botão de Lembrete Anti-Falta via WhatsApp (RF13) -->
+                                <button th:if="${ag.cliente != null and ag.status.name() == 'AGENDADO'}"
+                                        type="button"
+                                        class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm"
+                                        title="Enviar lembrete amigável de véspera anti-falta via WhatsApp"
+                                        th:data-cliente="${ag.cliente.nome}"
+                                        th:data-servico="${ag.servico != null ? ag.servico.nome : 'Atendimento'}"
+                                        th:data-data="${#temporals.format(ag.data, 'dd/MM/yyyy')}"
+                                        th:data-horario="${#temporals.format(ag.horario, 'HH:mm')}"
+                                        th:data-telefone="${ag.cliente.telefone}"
+                                        onclick="enviarLembreteWhatsApp(this.getAttribute('data-cliente'), this.getAttribute('data-servico'), this.getAttribute('data-data'), this.getAttribute('data-horario'), this.getAttribute('data-telefone'))">
+                                    <i class="bi bi-whatsapp me-1"></i> Lembrete
+                                </button>
+
+                                <!-- Botão de WhatsApp direto se tiver telefone -->
                                 <a th:if="${ag.cliente != null}"
                                    th:href="'https://api.whatsapp.com/send?phone=55' + ${#strings.replace(#strings.replace(#strings.replace(#strings.replace(ag.cliente.telefone, '(', ''), ')', ''), ' ', ''), '-', '')}"
                                    target="_blank"
-                                   class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm"
+                                   class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm"
                                    title="Conversar no WhatsApp">
-                                    <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                    <i class="bi bi-chat-dots me-1"></i> Conversar
                                 </a>
 
                                 <!-- Ações para AGENDADO -->
@@ -323,6 +364,14 @@
             form.action = '/admin/agendamentos/' + agendamentoId + '/cancelar';
             const modal = new bootstrap.Modal(document.getElementById('modalCancelar'));
             modal.show();
+        }
+
+        function enviarLembreteWhatsApp(nome, servico, data, horario, telefone) {
+            if (!telefone) return;
+            const telefoneLimpo = telefone.replace(/\D/g, '');
+            const mensagem = `Olá, ${nome}! Tudo bem? Passando para lembrar do seu atendimento de *${servico}* agendado para o dia *${data}* às *${horario}*. Confirma sua presença? Se precisar remarcar, por favor nos avise com antecedência. Obrigado!`;
+            const url = `https://api.whatsapp.com/send?phone=55${telefoneLimpo}&text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
         }
     </script>
 </body>

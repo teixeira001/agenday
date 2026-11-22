@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenday - Gerenciador de Serviços</title>
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .hover-card {
+            transition: transform 0.15s ease-in-out;
+        }
+        .hover-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Barra de Navegação Administrativa -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/admin}">
+                <i class="bi bi-shield-check text-primary me-2"></i>Agenday <span class="badge bg-primary fs-6">Admin</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar" aria-controls="adminNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="adminNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/admin}">
+                            <i class="bi bi-calendar3 me-1"></i> Agenda
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/admin/clientes}">
+                            <i class="bi bi-people me-1"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" th:href="@{/admin/servicos}">
+                            <i class="bi bi-scissors me-1"></i> Serviços
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <a th:href="@{/}" target="_blank" class="btn btn-outline-light btn-sm rounded-pill">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Ver Site
+                    </a>
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="btn btn-outline-light btn-sm rounded-pill">
+                            <i class="bi bi-box-arrow-right me-1"></i> Sair
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4 my-md-5">
+
+        <!-- Mensagens de Feedback -->
+        <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${mensagemSucesso}">Sucesso</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+
+        <div th:if="${mensagemErro}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${mensagemErro}">Erro</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+
+        <!-- Cabeçalho da Página com Botão de Cadastro -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-1">
+                    <i class="bi bi-stars text-primary me-2"></i>Catálogo de Serviços
+                </h1>
+                <p class="text-muted small m-0">Cadastre, altere preços, durações e controle quais serviços aparecem na sua página de agendamento.</p>
+            </div>
+
+            <button type="button" class="btn btn-primary rounded-pill shadow-sm px-4 py-2 fw-medium"
+                    data-bs-toggle="modal" data-bs-target="#modalNovoServico">
+                <i class="bi bi-plus-lg me-1"></i> Novo Serviço
+            </button>
+        </div>
+
+        <!-- Tabela / Cards de Serviços -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
+
+                <div th:if="${#lists.isEmpty(servicos)}" class="text-center py-5 text-muted">
+                    <i class="bi bi-card-checklist text-secondary opacity-50" style="font-size: 3.5rem;"></i>
+                    <p class="mt-3 mb-1 fw-bold fs-5">Nenhum serviço cadastrado.</p>
+                    <p class="small text-muted">Clique em "Novo Serviço" para adicionar seu primeiro atendimento ao catálogo.</p>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(servicos)}" class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4 py-3">Serviço</th>
+                                <th class="py-3">Duração</th>
+                                <th class="py-3">Preço</th>
+                                <th class="py-3">Disponibilidade</th>
+                                <th class="pe-4 py-3 text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="s : ${servicos}">
+                                <td class="ps-4 py-3">
+                                    <div class="fw-bold text-dark" th:text="${s.nome}">Massagem Relaxante</div>
+                                    <div class="small text-muted" th:if="${s.descricao}" th:text="${s.descricao}">Descrição breve</div>
+                                </td>
+                                <td class="py-3">
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi bi-clock me-1 text-primary"></i><span th:text="${s.duracaoMinutos}">60</span> min
+                                    </span>
+                                </td>
+                                <td class="py-3">
+                                    <span class="fw-bold text-dark">
+                                        R$ <span th:text="${#numbers.formatDecimal(s.valor, 1, 'POINT', 2, 'COMMA')}">120,00</span>
+                                    </span>
+                                </td>
+                                <td class="py-3">
+                                    <span th:if="${s.ativo}" class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill">
+                                        <i class="bi bi-check-circle me-1"></i> Ativo na Bio
+                                    </span>
+                                    <span th:unless="${s.ativo}" class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1 rounded-pill">
+                                        <i class="bi bi-eye-slash me-1"></i> Oculto / Inativo
+                                    </span>
+                                </td>
+                                <td class="pe-4 py-3 text-end">
+                                    <div class="d-inline-flex gap-2">
+                                        <!-- Botão Editar -->
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                                data-bs-toggle="modal" th:data-bs-target="'#modalEditarServico' + ${s.id}">
+                                            <i class="bi bi-pencil me-1"></i> Editar
+                                        </button>
+
+                                        <!-- Botão Ativar/Desativar -->
+                                        <form th:action="@{/admin/servicos/{id}/toggle-status(id=${s.id})}" method="POST" class="m-0">
+                                            <button type="submit"
+                                                    class="btn btn-sm rounded-pill px-3"
+                                                    th:classappend="${s.ativo ? 'btn-outline-warning' : 'btn-outline-success'}"
+                                                    th:title="${s.ativo ? 'Desativar serviço da página pública' : 'Ativar serviço para agendamento'}">
+                                                <i class="bi" th:classappend="${s.ativo ? 'bi-eye-slash me-1' : 'bi-check-lg me-1'}"></i>
+                                                <span th:text="${s.ativo ? 'Desativar' : 'Ativar'}">Toggle</span>
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Modal de Edição Específico deste Serviço -->
+                                    <div class="modal fade text-start" th:id="'modalEditarServico' + ${s.id}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content rounded-4 border-0 shadow">
+                                                <form th:action="@{/admin/servicos/{id}(id=${s.id})}" method="POST">
+                                                    <div class="modal-header border-0 pb-0">
+                                                        <h5 class="modal-title fw-bold">
+                                                            <i class="bi bi-pencil-square text-primary me-2"></i>Editar Serviço
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                                    </div>
+                                                    <div class="modal-body p-4">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-medium">Nome do Serviço *</label>
+                                                            <input type="text" name="nome" class="form-control rounded-3"
+                                                                   th:value="${s.nome}" required maxlength="100">
+                                                        </div>
+
+                                                        <div class="row g-3 mb-3">
+                                                            <div class="col-6">
+                                                                <label class="form-label fw-medium">Duração (minutos) *</label>
+                                                                <input type="number" name="duracaoMinutos" class="form-control rounded-3"
+                                                                       th:value="${s.duracaoMinutos}" required min="15" max="480">
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label class="form-label fw-medium">Preço (R$) *</label>
+                                                                <input type="number" step="0.01" name="valor" class="form-control rounded-3"
+                                                                       th:value="${s.valor}" required min="0">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-medium">Descrição (Opcional)</label>
+                                                            <textarea name="descricao" class="form-control rounded-3" rows="3"
+                                                                      maxlength="500" th:text="${s.descricao}"></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-0 pt-0">
+                                                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-primary rounded-pill px-4">Salvar Alterações</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal para Cadastrar Novo Serviço -->
+    <div class="modal fade" id="modalNovoServico" tabindex="-1" aria-labelledby="modalNovoServicoLabel" aria-hidden="true"
+         th:classappend="${abrirModalCadastro == true ? 'show d-block' : ''}">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <form th:action="@{/admin/servicos}" th:object="${servicoNovo}" method="POST">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold" id="modalNovoServicoLabel">
+                            <i class="bi bi-plus-circle text-primary me-2"></i>Cadastrar Novo Serviço
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"
+                                onclick="if(document.getElementById('modalNovoServico').classList.contains('show')) location.href='/admin/servicos'"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <p class="text-muted small mb-3">Defina as informações do serviço. Ele ficará ativo automaticamente para agendamentos dos clientes.</p>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Nome do Serviço *</label>
+                            <input type="text" th:field="*{nome}" class="form-control rounded-3"
+                                   th:classappend="${#fields.hasErrors('nome')} ? 'is-invalid' : ''"
+                                   placeholder="Ex: Corte de Cabelo, Massagem Relaxante..." required maxlength="100">
+                            <div class="invalid-feedback" th:errors="*{nome}">Erro no nome</div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-medium">Duração (minutos) *</label>
+                                <input type="number" th:field="*{duracaoMinutos}" class="form-control rounded-3"
+                                       th:classappend="${#fields.hasErrors('duracaoMinutos')} ? 'is-invalid' : ''"
+                                       placeholder="Ex: 60" required min="15" max="480">
+                                <div class="invalid-feedback" th:errors="*{duracaoMinutos}">Erro na duração</div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-medium">Preço (R$) *</label>
+                                <input type="number" step="0.01" th:field="*{valor}" class="form-control rounded-3"
+                                       th:classappend="${#fields.hasErrors('valor')} ? 'is-invalid' : ''"
+                                       placeholder="Ex: 120.00" required min="0">
+                                <div class="invalid-feedback" th:errors="*{valor}">Erro no valor</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Descrição (Opcional)</label>
+                            <textarea th:field="*{descricao}" class="form-control rounded-3" rows="3"
+                                      placeholder="Ex: Tratamento completo com lavagem, hidratação e finalização..."
+                                      maxlength="500"></textarea>
+                            <div class="invalid-feedback" th:errors="*{descricao}">Erro na descrição</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal"
+                                onclick="if(document.getElementById('modalNovoServico').classList.contains('show')) location.href='/admin/servicos'">Cancelar</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Cadastrar Serviço</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backdrop caso haja erro de validação -->
+    <div th:if="${abrirModalCadastro == true}" class="modal-backdrop fade show"></div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

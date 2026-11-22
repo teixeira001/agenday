@@ -40,4 +40,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     // Lista agendamentos entre um intervalo de datas (para visualização semanal da massoterapeuta)
     List<Agendamento> findByDataBetweenOrderByDataAscHorarioAsc(LocalDate dataInicio, LocalDate dataFim);
+
+    // Lista todo o histórico de agendamentos de um cliente específico com o serviço carregado
+    @Query("SELECT a FROM Agendamento a LEFT JOIN FETCH a.servico WHERE a.cliente.id = :clienteId ORDER BY a.data DESC, a.horario DESC")
+    List<Agendamento> findByClienteIdComServicoOrderByDataDesc(@Param("clienteId") Long clienteId);
 }

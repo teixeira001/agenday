@@ -48,6 +48,9 @@ Profissional responsável pelos atendimentos.
 * **RF08 – Impedir Conflitos e Intervalo Técnico:** O sistema não deverá permitir dois agendamentos com sobreposição de horários. A checagem considera o horário de início + duração do serviço + 15 minutos de intervalo técnico entre atendimentos (para higienização da sala e maca).
 * **RF09 – Identificação Única por Telefone:** O sistema deverá utilizar o telefone celular como chave única do cliente, reaproveitando o cadastro existente e evitando duplicidades.
 * **RF10 – Notificação via WhatsApp:** Ao concluir o agendamento, a tela de sucesso deverá disponibilizar um botão para envio direto de mensagem no WhatsApp da massoterapeuta com os detalhes pré-formatados.
+* **RF11 – Gestão de Clientes e Ficha Técnica / Anamnese:** A profissional deverá visualizar a lista de clientes cadastrados, histórico de atendimentos e gerenciar uma ficha de anotações técnicas/anamnese (flexível para contraindicações de massoterapia, histórico químico para cabeleireiras, etc.).
+* **RF12 – Gerenciamento de Serviços (CRUD):** A profissional poderá cadastrar novos serviços, editar preços, duração, descrição e ativar/desativar serviços diretamente pelo painel administrativo sem alterar código.
+* **RF13 – Lembrete de Atendimento via WhatsApp (Anti-Falta):** Na agenda, a profissional terá um botão de lembrete que gera mensagem pré-formatada no WhatsApp do cliente confirmando a sessão do dia seguinte.
 
 ---
 
@@ -110,6 +113,7 @@ Profissional responsável pelos atendimentos.
 * `id` (BIGINT PK)
 * `nome` (VARCHAR 100)
 * `telefone` (VARCHAR 20 UNIQUE)
+* `observacoes` (TEXT - Ficha técnica / Anamnese / Observações do profissional)
 
 ### Serviço
 * `id` (BIGINT PK)
@@ -117,6 +121,7 @@ Profissional responsável pelos atendimentos.
 * `descricao` (VARCHAR 500)
 * `duracao_minutos` (INTEGER)
 * `valor` (DECIMAL 10,2)
+* `ativo` (BOOLEAN DEFAULT TRUE - Controle de disponibilidade pública)
 
 ### Agendamento
 * `id` (BIGINT PK)
@@ -208,6 +213,7 @@ Resumo: Massagem Relaxante | 20/06 às 09:00
 | `id` | BIGINT | Chave Primária (PK) |
 | `nome` | VARCHAR(100) | Nome do cliente |
 | `telefone` | VARCHAR(20) | Telefone para contato e chave única (UNIQUE) |
+| `observacoes` | TEXT | Ficha técnica, anamnese e histórico do cliente |
 
 ### SERVICO
 | Campo | Tipo | Observação |
@@ -217,6 +223,7 @@ Resumo: Massagem Relaxante | 20/06 às 09:00
 | `descricao` | VARCHAR(500) | Descrição do serviço |
 | `duracao_minutos`| INTEGER | Duração do atendimento |
 | `valor` | DECIMAL(10,2)| Valor do serviço |
+| `ativo` | BOOLEAN | Controla visibilidade pública na página de agendamento |
 
 ### AGENDAMENTO
 | Campo | Tipo | Observação |
@@ -236,7 +243,8 @@ Resumo: Massagem Relaxante | 20/06 às 09:00
 CLIENTE (
     id PK,
     nome,
-    telefone UNIQUE
+    telefone UNIQUE,
+    observacoes
 );
 
 SERVICO (
@@ -244,7 +252,8 @@ SERVICO (
     nome,
     descricao,
     duracao_minutos,
-    valor
+    valor,
+    ativo
 );
 
 AGENDAMENTO (
@@ -258,4 +267,21 @@ AGENDAMENTO (
 );
 ```
 
-criei o banco com o nome agenday, a porta é 5432 o usuário é o postgres e a senha é uma minha especifica
+---
+
+## 12. Arquitetura Multi-Nicho e Preparação SaaS
+
+O sistema foi estruturado para ser totalmente **agnóstico de nicho**, viabilizando sua comercialização para massoterapeutas, salões de beleza, cabeleireiras, barbearias, estúdios de estética, etc:
+
+1. **Ficha Técnica & Anamnese Flexível (`observacoes` em `Cliente`):**
+   * *Massoterapia:* Anotações de pontos de dor, histórico ortopédico, alergia a óleos essenciais, contraindicações de pressão.
+   * *Cabeleireira / Salão de Beleza:* Histórico químico, marcas e números de coloração aplicadas, descolorações anteriores, sensibilidade capilar.
+   * *Estética / Barbearia:* Preferências de estilo, tipo de pele, lâminas recomendadas.
+
+2. **Gerenciador de Serviços Autônomo (`/admin/servicos`):**
+   * Cada profissional cadastra seus próprios serviços, define tempo de duração em minutos (30, 45, 60, 120 min), preço e status ativo/inativo.
+   * A página de agendamento público consulta dinamicamente apenas os serviços ativos, sem necessidade de recompilação ou alteração de código.
+
+3. **Anti-Falta com WhatsApp (RF13):**
+   * Reduz o índice de *no-show* (faltas sem aviso) permitindo que o profissional dispare lembretes de véspera em 1 clique com mensagem pronta e personalizada.
+

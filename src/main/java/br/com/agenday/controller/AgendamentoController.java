@@ -47,7 +47,7 @@ public class AgendamentoController {
         if (!model.containsAttribute("agendamentoDTO")) {
             model.addAttribute("agendamentoDTO", new AgendamentoRequestDTO());
         }
-        model.addAttribute("servicos", servicoRepository.findAllByOrderByNomeAsc());
+        model.addAttribute("servicos", servicoRepository.findAllByAtivoTrueOrderByNomeAsc());
         model.addAttribute("dataMinima", LocalDate.now());
         return "agendamento";
     }
@@ -80,7 +80,7 @@ public class AgendamentoController {
             Model model) {
 
         if (result.hasErrors()) {
-            model.addAttribute("servicos", servicoRepository.findAllByOrderByNomeAsc());
+            model.addAttribute("servicos", servicoRepository.findAllByAtivoTrueOrderByNomeAsc());
             model.addAttribute("dataMinima", LocalDate.now());
             return "agendamento";
         }
@@ -89,7 +89,7 @@ public class AgendamentoController {
             Agendamento agendamentoCriado = agendamentoService.criarAgendamento(dto);
             return "redirect:/agendamento/sucesso/" + agendamentoCriado.getId();
         } catch (IllegalStateException | IllegalArgumentException e) {
-            model.addAttribute("servicos", servicoRepository.findAllByOrderByNomeAsc());
+            model.addAttribute("servicos", servicoRepository.findAllByAtivoTrueOrderByNomeAsc());
             model.addAttribute("dataMinima", LocalDate.now());
             model.addAttribute("erroDisponibilidade", e.getMessage());
             return "agendamento";

@@ -40,6 +40,9 @@ public class Servico {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal valor;
 
+    @Column(nullable = false)
+    private boolean ativo = true;
+
     // Construtor padrão obrigatório pelo JPA
     public Servico() {
     }
@@ -50,6 +53,7 @@ public class Servico {
         this.descricao = descricao;
         this.duracaoMinutos = duracaoMinutos;
         this.valor = valor;
+        this.ativo = true;
     }
 
     // Getters e Setters
@@ -91,6 +95,14 @@ public class Servico {
 
     public void setValor(BigDecimal valor) {
         this.valor = valor;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
     }
 
     @Override

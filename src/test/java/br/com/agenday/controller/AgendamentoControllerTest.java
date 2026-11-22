@@ -48,7 +48,7 @@ class AgendamentoControllerTest {
     @DisplayName("GET /agendamento deve carregar página com lista de serviços")
     void testExibirFormulario() throws Exception {
         Servico s1 = new Servico("Relaxante", "Desc", 60, new BigDecimal("120.00"));
-        when(servicoRepository.findAllByOrderByNomeAsc()).thenReturn(List.of(s1));
+        when(servicoRepository.findAllByAtivoTrueOrderByNomeAsc()).thenReturn(List.of(s1));
 
         mockMvc.perform(get("/agendamento"))
                 .andExpect(status().isOk())

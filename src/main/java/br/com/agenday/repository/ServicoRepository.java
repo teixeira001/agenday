@@ -10,4 +10,7 @@ public interface ServicoRepository extends JpaRepository<Servico, Long> {
 
     // Método customizado do Spring Data JPA para listar serviços ordenados por nome
     List<Servico> findAllByOrderByNomeAsc();
+
+    // Lista apenas serviços ativos para seleção pública no agendamento
+    List<Servico> findAllByAtivoTrueOrderByNomeAsc();
 }
