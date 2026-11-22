@@ -40,7 +40,7 @@ public class Servico {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal valor;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean ativo = true;
 
     // Construtor padrão obrigatório pelo JPA
